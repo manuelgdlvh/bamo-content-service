@@ -1,0 +1,1 @@
+docker build -f src/main/docker/Dockerfile.jvm -t manuelgdlvh/bamo-content-service . && docker push manuelgdlvh/bamo-content-service
