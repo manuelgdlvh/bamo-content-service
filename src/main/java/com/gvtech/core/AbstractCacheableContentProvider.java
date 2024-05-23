@@ -6,6 +6,7 @@ import com.gvtech.core.status.ContentStatusHandler;
 import com.gvtech.core.update.ContentUpdate;
 import com.gvtech.monitoring.MetricService;
 import com.gvtech.support.AbstractContentListProvider;
+import io.quarkus.logging.Log;
 import jakarta.inject.Inject;
 import lombok.Getter;
 
@@ -191,6 +192,7 @@ public abstract class AbstractCacheableContentProvider<T> extends AbstractConten
         try {
             return build(contentId);
         } catch (Exception exception) {
+            Log.error(String.format("error building %s - %s content caused by: %s", type(), contentId.getId(), exception.getMessage()));
         }
 
         return null;
