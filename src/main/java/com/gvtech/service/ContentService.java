@@ -20,11 +20,9 @@ import java.util.Set;
 @Startup
 public class ContentService extends AsyncExecutorAware {
 
+    final Map<ContentType, ContentProvider<?>> contentProviders;
     @Inject
     ContentHandler contentHandler;
-
-
-    final Map<ContentType, ContentProvider<?>> contentProviders;
 
     public ContentService(Instance<ContentProvider<?>> contentProviders) {
 

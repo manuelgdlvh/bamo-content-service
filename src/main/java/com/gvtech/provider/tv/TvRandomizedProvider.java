@@ -16,14 +16,12 @@ import java.util.Random;
 @Startup
 public class TvRandomizedProvider implements ContentProvider<Tv> {
 
+    final Random random = new Random();
     // PATTERN LANGUAGE/COUNTRY/PLATFORMS/GENRES/YEARS
     @Inject
     TvIdsProvider tvIdsProvider;
     @Inject
     TvProvider tvProvider;
-
-    final Random random = new Random();
-
 
     @Override
     public Tv get(ContentId contentId) {

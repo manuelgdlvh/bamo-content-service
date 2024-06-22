@@ -11,10 +11,6 @@ public record Movie(Long id, String title, String release_date, List<String> gen
                     List<CreditsMemberResponse> credits) implements Content {
 
 
-    public record CreditsMemberResponse(String name, String type) implements Serializable {
-    }
-
-
     public static Movie map(final MovieEntity movieEntity, final String country) {
         final MovieDetailsEntity movieDetails = movieEntity.getDetails().getFirst();
         final List<WatchProviderEntity> watchProviderEntities = movieEntity.getWatchProviders().stream()
@@ -34,10 +30,12 @@ public record Movie(Long id, String title, String release_date, List<String> gen
         return movieEntities.stream().map(movieEntity -> map(movieEntity, country)).toList();
     }
 
-
     @Override
     public String getContentType() {
         return "MOVIE";
+    }
+
+    public record CreditsMemberResponse(String name, String type) implements Serializable {
     }
 }
 

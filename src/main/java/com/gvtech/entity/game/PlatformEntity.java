@@ -1,7 +1,6 @@
 package com.gvtech.entity.game;
 
 import com.gvtech.entity.ContentEntity;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

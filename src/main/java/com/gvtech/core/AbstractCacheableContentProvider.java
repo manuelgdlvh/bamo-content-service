@@ -5,22 +5,20 @@ import com.gvtech.core.remove.ContentRemove;
 import com.gvtech.core.status.ContentStatusHandler;
 import com.gvtech.core.update.ContentUpdate;
 import com.gvtech.monitoring.MetricService;
-import com.gvtech.support.AbstractContentListProvider;
 import io.quarkus.logging.Log;
 import jakarta.inject.Inject;
 import lombok.Getter;
 
-public abstract class AbstractCacheableContentProvider<T> extends AbstractContentListProvider implements CacheableContentProvider<T> {
+public abstract class AbstractCacheableContentProvider<T> implements CacheableContentProvider<T> {
+    @Getter
+    private final Long expirationInMillis;
+    private final ContentStorage<T> contentStorage = new ContentStorage<>();
     @Inject
     ContentHandler contentHandler;
     @Inject
     ContentStatusHandler contentStatusHandler;
     @Inject
     MetricService metricService;
-
-    @Getter
-    private final Long expirationInMillis;
-    private final ContentStorage<T> contentStorage = new ContentStorage<>();
 
     public AbstractCacheableContentProvider(final Long expirationInMillis) {
         this.expirationInMillis = expirationInMillis;

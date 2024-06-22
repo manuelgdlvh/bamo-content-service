@@ -9,6 +9,7 @@ import com.gvtech.model.ContentWithMetadataList;
 import com.gvtech.model.Filter;
 import com.gvtech.model.FilterList;
 import com.gvtech.service.ContentService;
+import io.quarkus.logging.Log;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
@@ -23,10 +24,9 @@ import java.util.stream.Collectors;
 @Path("/content")
 public class AdapterResource {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @Inject
     ContentService contentService;
-    final ObjectMapper mapper = new ObjectMapper();
-
 
     @SuppressWarnings("unchecked")
     @Path("/byFilter")
@@ -35,10 +35,12 @@ public class AdapterResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public List<Content> findByFilter(final Request request, @RestHeader("Language") String language, @RestHeader("Country") String country) throws JsonProcessingException {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -82,10 +84,12 @@ public class AdapterResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public ContentWithMetadataList explore(final ExploreRequest request, @RestHeader("Language") String language, @RestHeader("Country") String country) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -156,10 +160,12 @@ public class AdapterResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Object findRandom(final Request request, @RestHeader("Language") String language, @RestHeader("Country") String country) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -193,10 +199,12 @@ public class AdapterResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public List<Content> findByIds(final RequestByIds request, @RestHeader("Language") String language, @RestHeader("Country") String country) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -244,10 +252,12 @@ public class AdapterResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public HasResultsResponse hasResults(final Request request, @RestHeader("Language") String language, @RestHeader("Country") String country) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
         // PATTERN LANGUAGE/COUNTRY/PLATFORMS/GENRES/YEARS/SIZE
@@ -278,7 +288,8 @@ public class AdapterResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RunOnVirtualThread
     public FilterList findAllGenres(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -293,7 +304,8 @@ public class AdapterResource {
     @SuppressWarnings("unchecked")
     public FilterList findAllWatchProviders(@RestHeader("Country") String country) {
 
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -307,7 +319,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllTvGenres(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -322,7 +335,8 @@ public class AdapterResource {
     @SuppressWarnings("unchecked")
     public FilterList findAllTvWatchProviders(@RestHeader("Country") String country) {
 
-        if (country == null) {
+        if (country == null || country.isBlank()) {
+            Log.warn("country not provided, using default...");
             country = "US";
         }
 
@@ -337,7 +351,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllGameGenres(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -364,7 +379,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllGameModes(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -378,7 +394,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllRecipeCuisines(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -392,7 +409,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllRecipeDiets(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 
@@ -406,7 +424,8 @@ public class AdapterResource {
     @RunOnVirtualThread
     @SuppressWarnings("unchecked")
     public FilterList findAllRecipeTypes(@RestHeader("Language") String language) {
-        if (language == null) {
+        if (language == null || language.isBlank()) {
+            Log.warn("language not provided, using default...");
             language = "EN";
         }
 

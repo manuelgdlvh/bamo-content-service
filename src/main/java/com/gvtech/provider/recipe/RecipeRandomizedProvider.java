@@ -16,14 +16,12 @@ import java.util.Random;
 @Startup
 public class RecipeRandomizedProvider implements ContentProvider<Recipe> {
 
+    final Random random = new Random();
     // PATTERN LANGUAGE/CUISINES/DIETS/TYPES
     @Inject
     RecipeIdsProvider recipeIdsProvider;
     @Inject
     RecipeProvider recipeProvider;
-
-    final Random random = new Random();
-
 
     @Override
     public Recipe get(ContentId contentId) {

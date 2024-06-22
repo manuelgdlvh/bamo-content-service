@@ -15,15 +15,6 @@ public record Tv(Long id, String title, String release_date,
         , Float rate, List<CreditsMemberResponse> credits) implements Content {
 
 
-    @Override
-    public String getContentType() {
-        return "TV";
-    }
-
-
-    public record CreditsMemberResponse(String name, String type) implements Serializable {
-    }
-
     public static Tv map(final TvEntity tvEntity, final String country) {
         final TvDetailsEntity tvDetails = tvEntity.getDetails().getFirst();
         final List<WatchProviderEntity> watchProviderEntities = tvEntity.getWatchProviders().stream().filter(tvWatchProviderEntity -> tvWatchProviderEntity.getCountry().equals(country)).map(TvWatchProviderEntity::getWatchProviderEntity).toList();
@@ -40,6 +31,14 @@ public record Tv(Long id, String title, String release_date,
 
     public static List<Tv> mapList(final List<TvEntity> tvEntities, final String country) {
         return tvEntities.stream().map(tvEntity -> map(tvEntity, country)).toList();
+    }
+
+    @Override
+    public String getContentType() {
+        return "TV";
+    }
+
+    public record CreditsMemberResponse(String name, String type) implements Serializable {
     }
 
 

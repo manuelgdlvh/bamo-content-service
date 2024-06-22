@@ -19,10 +19,9 @@ import java.util.*;
 @Startup
 public class MovieRepository {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @PersistenceContext
     EntityManager em;
-
-    final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("unchecked")
     @Transactional
@@ -73,7 +72,7 @@ public class MovieRepository {
     @SuppressWarnings("unchecked")
     @Transactional
     public Set<Long> findBy(final String language, final String country, final boolean exclusiveCountry, final List<Long> platforms, final List<Long> genres, final List<Integer> years) {
-        final String sqlBase = " SELECT DISTINCT(m.movie_id) AS m_movie_id FROM \"movie\".movie m JOIN \"movie\".movie_details md ON m.movie_id = md.movie_id" +
+        final String sqlBase = " SELECT m.movie_id AS m_movie_id FROM \"movie\".movie m JOIN \"movie\".movie_details md ON m.movie_id = md.movie_id" +
                 " JOIN \"movie\".movie_genre mg ON m.movie_id = mg.movie_id JOIN \"movie\".genre_details mgd ON mg.genre_id = mgd.genre_id JOIN \"movie\".movie_watch_provider mwp ON m.movie_id = mwp.movie_id" +
                 " JOIN \"movie\".watch_provider wp ON wp.watch_provider_id = mwp.watch_provider_id WHERE mgd.language = :language AND md.language = :language" +
                 " AND wp.enabled = true %s %s %s %s";

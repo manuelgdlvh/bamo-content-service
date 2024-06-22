@@ -6,19 +6,19 @@ import com.gvtech.core.ContentType;
 import com.gvtech.model.ContentWithMetadata;
 import com.gvtech.model.ContentWithMetadataList;
 import com.gvtech.provider.content.ContentSearchableIdsProvider;
-import com.gvtech.support.AbstractContentListProvider;
-import com.gvtech.support.ContentBucket;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.StructuredTaskScope;
 
 
 @ApplicationScoped
 @Startup
-public class RecipeMetadataSearchableListProvider extends AbstractContentListProvider implements ContentProvider<ContentWithMetadataList> {
+public class RecipeMetadataSearchableListProvider implements ContentProvider<ContentWithMetadataList> {
     // PATTERN LANGUAGE/KEYWORD/PAGE
 
     private static final int PAGE_SIZE = 15;
@@ -57,14 +57,15 @@ public class RecipeMetadataSearchableListProvider extends AbstractContentListPro
         }
 
         final List<Long> recipeMetadataIdsPaged = new ArrayList<>(contentIds).subList(fromIndex, toIndex);
+        final List<ContentWithMetadata> recipesWithMetadata;
+        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
-        final ContentBucket<ContentWithMetadata> recipeBucket = this.emptyBucket();
-        for (Long recipeId : recipeMetadataIdsPaged) {
-            recipeBucket.add(() -> findContentMetadata(recipeId, language));
-        }
+            final List<StructuredTaskScope.Subtask<ContentWithMetadata>> subtasks =
+                    recipeMetadataIdsPaged.stream().map(recipeId -> scope.fork(() -> findContentMetadata(recipeId, language))).toList();
+            scope.join();
+            recipesWithMetadata = subtasks.stream().map(StructuredTaskScope.Subtask::get).filter(Objects::nonNull).toList();
 
-        final List<ContentWithMetadata> recipesWithMetadata = recipeBucket.get();
-        if (recipesWithMetadata.isEmpty()) {
+        } catch (InterruptedException e) {
             return null;
         }
 

@@ -22,10 +22,9 @@ import java.util.Set;
 @Startup
 public class ContentMetadataRepository {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @PersistenceContext
     EntityManager em;
-
-    final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("unchecked")
     @Transactional

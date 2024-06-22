@@ -5,7 +5,6 @@ import com.gvtech.core.ContentBuild;
 import com.gvtech.core.ContentId;
 import com.gvtech.core.ContentType;
 import com.gvtech.repository.ContentMetadataRepository;
-import io.quarkus.logging.Log;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.function.Predicate;
 
 
 @ApplicationScoped

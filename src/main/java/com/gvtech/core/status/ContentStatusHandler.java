@@ -38,10 +38,12 @@ public class ContentStatusHandler {
 
 
     private ContentStatus getAndPutIfAbsent(final ContentId contentId, final ContentType contentType) {
-        ContentStatus currentStatus = this.contentStatusMap.get(contentType).putIfAbsent(contentId, new ContentStatus());
+        ContentStatus currentStatus = this.contentStatusMap.get(contentType).putIfAbsent(contentId, new ContentStatus(String.format("%s/%s", contentType.getType(), contentId.getId())));
         if (currentStatus == null) {
             Log.info(String.format("created status lock for %s - %s content", contentType.getType(), contentId.getId()));
             currentStatus = this.contentStatusMap.get(contentType).get(contentId);
+        } else {
+            Log.info(String.format(" status lock for %s - %s content not created, an valid status lock found", contentType.getType(), contentId.getId()));
         }
 
         return currentStatus;
@@ -49,9 +51,9 @@ public class ContentStatusHandler {
 
     public void awaitReadable(final ContentId contentId, final ContentType contentType) {
         ContentStatus contentStatus = this.getAndPutIfAbsent(contentId, contentType);
-        Log.info(String.format("trying to acquire read status lock for %s - %s", contentId.getId(), contentType.getType()));
+        int numRetries = 0;
         while (!contentStatus.tryChangeStatus(Status.READING)) {
-            Log.warn(String.format("retrying to acquire read status lock for %s - %s", contentId.getId(), contentType.getType()));
+            Log.warn(String.format("retrying to acquire read status lock for %s - %s, %s total retries", contentId.getId(), contentType.getType(), ++numRetries));
             contentStatus = this.getAndPutIfAbsent(contentId, contentType);
             metricService.incrementLockStatusRetry();
         }
@@ -59,9 +61,9 @@ public class ContentStatusHandler {
 
     public void awaitUpdatable(final ContentId contentId, final ContentType contentType) {
         ContentStatus contentStatus = this.getAndPutIfAbsent(contentId, contentType);
-        Log.info(String.format("trying to acquire update status lock for %s - %s", contentId.getId(), contentType.getType()));
+        int numRetries = 0;
         while (!contentStatus.tryChangeStatus(Status.UPDATING)) {
-            Log.warn(String.format("retrying to acquire update status lock for %s - %s", contentId.getId(), contentType.getType()));
+            Log.warn(String.format("retrying to acquire update status lock for %s - %s, %s total retries", contentId.getId(), contentType.getType(), ++numRetries));
             contentStatus = this.getAndPutIfAbsent(contentId, contentType);
             metricService.incrementLockStatusRetry();
         }
@@ -70,9 +72,9 @@ public class ContentStatusHandler {
 
     public void awaitWritable(final ContentId contentId, final ContentType contentType) {
         ContentStatus contentStatus = this.getAndPutIfAbsent(contentId, contentType);
-        Log.info(String.format("trying to acquire write status lock for %s - %s", contentId.getId(), contentType.getType()));
+        int numRetries = 0;
         while (!contentStatus.tryChangeStatus(Status.WRITING)) {
-            Log.warn(String.format("retrying to acquire write status lock for %s - %s", contentId.getId(), contentType.getType()));
+            Log.warn(String.format("retrying to acquire write status lock for %s - %s,  %s total retries", contentId.getId(), contentType.getType(), ++numRetries));
             contentStatus = this.getAndPutIfAbsent(contentId, contentType);
             metricService.incrementLockStatusRetry();
         }
@@ -99,7 +101,7 @@ public class ContentStatusHandler {
         this.metricService.incrementLockStatusWrite();
     }
 
-    @Scheduled(every = "15s")
+    @Scheduled(every = "300s")
     public void lockCleaner() {
         for (Map.Entry<ContentType, Map<ContentId, ContentStatus>> entry : this.contentStatusMap.entrySet()) {
             final ContentType contentType = entry.getKey();

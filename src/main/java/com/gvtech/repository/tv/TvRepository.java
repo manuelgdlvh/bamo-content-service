@@ -19,10 +19,9 @@ import java.util.*;
 @Startup
 public class TvRepository {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @PersistenceContext
     EntityManager em;
-
-    final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("unchecked")
     @Transactional

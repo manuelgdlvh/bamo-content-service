@@ -1,7 +1,5 @@
 package com.gvtech.support;
 
-import io.quarkus.logging.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;

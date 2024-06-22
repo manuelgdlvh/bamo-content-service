@@ -11,13 +11,11 @@ import jakarta.inject.Inject;
 
 public abstract class AbstractContentUpdater implements ContentUpdater {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @Inject
     ContentHandler contentHandler;
     @Inject
     MetricService metricsService;
-
-    final ObjectMapper mapper = new ObjectMapper();
-
 
     public abstract ContentUpdate build(final ChangeRecord changeRecord, final ObjectMapper mapper) throws JsonProcessingException;
 

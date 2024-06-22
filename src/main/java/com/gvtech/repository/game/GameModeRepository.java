@@ -3,7 +3,6 @@ package com.gvtech.repository.game;
 
 import com.gvtech.entity.ContentEntity;
 import com.gvtech.entity.game.GameModeEntity;
-import com.gvtech.entity.game.PlatformEntity;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;

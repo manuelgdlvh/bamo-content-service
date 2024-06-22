@@ -1,5 +1,7 @@
 package com.gvtech.core.status;
 
+import io.quarkus.logging.Log;
+
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -12,21 +14,20 @@ public class ContentStatus {
     private static final int AWAIT_TIME = 2000;
     private static final int MAX_RETRIES = 5;
 
+    private final String id;
     private final Lock lock = new ReentrantLock();
     private final Condition changeSignal = lock.newCondition();
 
 
     // STATE
-    private Status status;
+    private Status status = Status.IDLE;
     private int pendingReads = 0;
     private int pendingWrites = 0;
     private int pendingUpdates = 0;
-    private long lastOperation;
+    private long lastOperation = Instant.now().toEpochMilli();
 
-
-    public ContentStatus() {
-        this.status = Status.IDLE;
-        this.lastOperation = Instant.now().toEpochMilli();
+    public ContentStatus(final String id) {
+        this.id = id;
     }
 
 
@@ -43,7 +44,10 @@ public class ContentStatus {
     private boolean write() {
         lock.lock();
         try {
+            Log.info(String.format("trying to acquire write status lock for %s", id));
+
             if (isInvalidated()) {
+                Log.warn(String.format("invalidated status for #%s write, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                 return false;
             }
 
@@ -51,7 +55,9 @@ public class ContentStatus {
             pendingWrites++;
             while (this.status != Status.IDLE) {
                 if (retries == MAX_RETRIES) {
+                    Log.warn(String.format("max retries reached waiting for #%s write, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                     pendingWrites--;
+                    this.changeSignal.signalAll();
                     return false;
                 }
 
@@ -72,7 +78,10 @@ public class ContentStatus {
     private boolean read() {
         lock.lock();
         try {
+            Log.info(String.format("trying to acquire read status lock for %s", id));
+
             if (isInvalidated()) {
+                Log.warn(String.format("invalidated status for #%s read, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                 return false;
             }
 
@@ -80,7 +89,9 @@ public class ContentStatus {
             int retries = 0;
             while (status != Status.IDLE && status != Status.READING) {
                 if (retries == MAX_RETRIES) {
+                    Log.warn(String.format("max retries reached waiting for #%s read, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                     pendingReads--;
+                    this.changeSignal.signalAll();
                     return false;
                 }
 
@@ -102,7 +113,10 @@ public class ContentStatus {
     private boolean update() {
         lock.lock();
         try {
+            Log.info(String.format("trying to acquire update status lock for %s", id));
+
             if (isInvalidated()) {
+                Log.warn(String.format("invalidated status for #%s update, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                 return false;
             }
 
@@ -110,7 +124,9 @@ public class ContentStatus {
             int retries = 0;
             while (this.status != Status.IDLE || this.pendingWrites > 0) {
                 if (retries == MAX_RETRIES) {
+                    Log.warn(String.format("max retries reached waiting for #%s update, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                     pendingUpdates--;
+                    this.changeSignal.signalAll();
                     return false;
                 }
 
@@ -132,6 +148,7 @@ public class ContentStatus {
         try {
             return this.changeSignal.await(AWAIT_TIME, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
+            Log.error(String.format("an error ocurred waiting to status change for #%s caused by: %s", id, e.getMessage()));
             return false;
         }
     }
@@ -144,6 +161,7 @@ public class ContentStatus {
                 status = Status.IDLE;
             }
             this.changeSignal.signalAll();
+            Log.info(String.format("end read for #%s content, signaling all waiting threads", id));
         } finally {
             lock.unlock();
         }
@@ -155,6 +173,7 @@ public class ContentStatus {
             pendingUpdates--;
             status = Status.IDLE;
             this.changeSignal.signalAll();
+            Log.info(String.format("end update for #%s content, signaling all waiting threads", id));
         } finally {
             lock.unlock();
         }
@@ -167,6 +186,7 @@ public class ContentStatus {
             pendingWrites--;
             status = Status.IDLE;
             this.changeSignal.signalAll();
+            Log.info(String.format("end write for #%s content, signaling all waiting threads", id));
         } finally {
             lock.unlock();
         }
@@ -182,11 +202,13 @@ public class ContentStatus {
         lock.lock();
         try {
             if (totalPendingOperations() > 0) {
+                Log.info(String.format("cannot invalidate status lock for #%s, pending operations [read = %s, write = %s, update = %s]", id, pendingReads, pendingWrites, pendingUpdates));
                 return false;
             }
 
             final long now = Instant.now().toEpochMilli();
             if (lastOperation + INVALIDATE_TIME > now) {
+                Log.info(String.format("cannot invalidate status lock for #%s, no expiration time passed", id));
                 return false;
             }
 

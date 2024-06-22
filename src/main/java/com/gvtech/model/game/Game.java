@@ -10,12 +10,6 @@ public record Game(Long id, String name, String summary, Double rating, Integer 
                    String image, Integer year, List<String> gameModes, List<String> platforms,
                    List<String> genres) implements Content {
 
-    @Override
-    public String getContentType() {
-        return "GAME";
-    }
-
-
     public static Game map(final GameEntity gameEntity) {
         final GameDetailsEntity gameDetails = gameEntity.getDetails().getFirst();
         final List<String> gameModes = gameEntity.getGameModeEntities().stream().map(GameModeEntity::getName).toList();
@@ -36,6 +30,11 @@ public record Game(Long id, String name, String summary, Double rating, Integer 
 
         return result;
 
+    }
+
+    @Override
+    public String getContentType() {
+        return "GAME";
     }
 }
 

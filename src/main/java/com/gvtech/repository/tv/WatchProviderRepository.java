@@ -20,10 +20,9 @@ import java.util.List;
 @Startup
 public class WatchProviderRepository {
 
+    final ObjectMapper mapper = new ObjectMapper();
     @PersistenceContext
     EntityManager em;
-
-    final ObjectMapper mapper = new ObjectMapper();
 
     @SuppressWarnings("unchecked")
     @Transactional

@@ -1,7 +1,5 @@
 package com.gvtech;
 
-import com.gvtech.core.ContentDependant;
-import com.gvtech.core.ContentDependency;
 import com.gvtech.core.ContentId;
 import com.gvtech.core.ContentType;
 import com.gvtech.service.ContentService;
@@ -11,8 +9,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-
-import java.util.List;
 
 
 @Path("")
@@ -28,9 +24,6 @@ public class ExampleResource {
     public Object hello(final Request request) {
         return contentService.get(new ContentType(request.getType()), new ContentId(request.getId()));
     }
-
-
-
 
 
 }

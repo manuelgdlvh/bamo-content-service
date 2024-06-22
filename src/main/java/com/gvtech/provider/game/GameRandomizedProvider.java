@@ -16,14 +16,12 @@ import java.util.Random;
 @Startup
 public class GameRandomizedProvider implements ContentProvider<Game> {
 
+    final Random random = new Random();
     // PATTERN LANGUAGE/PLATFORMS/GENRES/YEARS/GAME_MODES
     @Inject
     GameIdsProvider gameIdsProvider;
     @Inject
     GameProvider gameProvider;
-
-    final Random random = new Random();
-
 
     @Override
     public Game get(ContentId contentId) {

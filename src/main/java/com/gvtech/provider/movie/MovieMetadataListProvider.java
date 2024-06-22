@@ -6,14 +6,15 @@ import com.gvtech.core.ContentId;
 import com.gvtech.core.ContentType;
 import com.gvtech.model.ContentWithMetadata;
 import com.gvtech.model.ContentWithMetadataList;
-import com.gvtech.support.ContentBucket;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.StructuredTaskScope;
 
 
 @ApplicationScoped
@@ -72,13 +73,15 @@ public class MovieMetadataListProvider extends AbstractCacheableContentProvider<
         final ContentBuild<ContentWithMetadataList> contentBuild = new ContentBuild<>();
         final List<Long> movieMetadataIdsPaged = new ArrayList<>(movieMetadataIds).subList(fromIndex, toIndex);
 
-        final ContentBucket<ContentWithMetadata> bucket = this.emptyBucket();
-        for (Long movieId : movieMetadataIdsPaged) {
-            bucket.add(() -> findContentMetadataAndRegisterDependency(movieId, language, country, contentBuild));
-        }
+        final List<ContentWithMetadata> moviesWithMetadata;
+        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
 
-        final List<ContentWithMetadata> moviesWithMetadata = bucket.get();
-        if (moviesWithMetadata.isEmpty()) {
+            final List<StructuredTaskScope.Subtask<ContentWithMetadata>> subtasks =
+                    movieMetadataIdsPaged.stream().map(movieId -> scope.fork(() -> findContentMetadataAndRegisterDependency(movieId, language, country, contentBuild))).toList();
+            scope.join();
+            moviesWithMetadata = subtasks.stream().map(StructuredTaskScope.Subtask::get).filter(Objects::nonNull).toList();
+
+        } catch (InterruptedException e) {
             return null;
         }
 

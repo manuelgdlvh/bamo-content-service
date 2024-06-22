@@ -4,19 +4,19 @@ import com.gvtech.core.ContentId;
 import com.gvtech.core.ContentProvider;
 import com.gvtech.core.ContentType;
 import com.gvtech.model.movie.Movie;
-import com.gvtech.support.AbstractContentListProvider;
-import com.gvtech.support.ContentBucket;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.StructuredTaskScope;
 
 
 @ApplicationScoped
 @Startup
-public class MovieListByIdsProvider extends AbstractContentListProvider implements ContentProvider<List<Movie>> {
+public class MovieListByIdsProvider implements ContentProvider<List<Movie>> {
 
     // PATTERN LANGUAGE/COUNTRY/IDS
     @Inject
@@ -38,13 +38,22 @@ public class MovieListByIdsProvider extends AbstractContentListProvider implemen
             ids.add(Long.valueOf(id));
         }
 
-        final ContentBucket<Movie> recipeBucket = this.emptyBucket();
-        for (Long movieId : ids) {
-            recipeBucket.add(() -> movieProvider.get(new ContentId(String.format("%s/%s/%s", language, country, movieId))));
+
+        final List<Movie> movies;
+        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+
+            final List<StructuredTaskScope.Subtask<Movie>> subtasks =
+                    ids.stream().map(movieId -> scope.fork(() -> movieProvider.get(new ContentId(String.format("%s/%s/%s", language, country, movieId))))).toList();
+            scope.join();
+            movies = subtasks.stream().map(StructuredTaskScope.Subtask::get).filter(Objects::nonNull).toList();
+
+        } catch (InterruptedException e) {
+            return null;
         }
 
-        return recipeBucket.get();
+        return movies;
     }
+
 
     @Override
     public ContentType type() {

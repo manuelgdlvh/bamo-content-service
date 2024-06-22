@@ -16,14 +16,12 @@ import java.util.Random;
 @Startup
 public class MovieRandomizedProvider implements ContentProvider<Movie> {
 
+    final Random random = new Random();
     // PATTERN LANGUAGE/COUNTRY/PLATFORMS/GENRES/YEARS
     @Inject
     MovieIdsProvider movieIdsProvider;
     @Inject
     MovieProvider movieProvider;
-
-    final Random random = new Random();
-
 
     @Override
     public Movie get(ContentId contentId) {

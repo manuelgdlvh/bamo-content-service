@@ -4,19 +4,19 @@ import com.gvtech.core.ContentId;
 import com.gvtech.core.ContentProvider;
 import com.gvtech.core.ContentType;
 import com.gvtech.model.recipe.Recipe;
-import com.gvtech.support.AbstractContentListProvider;
-import com.gvtech.support.ContentBucket;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.StructuredTaskScope;
 
 
 @ApplicationScoped
 @Startup
-public class RecipeListByIdsProvider extends AbstractContentListProvider implements ContentProvider<List<Recipe>> {
+public class RecipeListByIdsProvider implements ContentProvider<List<Recipe>> {
 
     // PATTERN LANGUAGE/IDS
     @Inject
@@ -38,12 +38,19 @@ public class RecipeListByIdsProvider extends AbstractContentListProvider impleme
         }
 
 
-        final ContentBucket<Recipe> recipeBucket = this.emptyBucket();
-        for (Long recipeId : ids) {
-            recipeBucket.add(() -> recipeProvider.get(new ContentId(String.format("%s/%s", language, recipeId))));
+        final List<Recipe> recipes;
+        try (var scope = new StructuredTaskScope.ShutdownOnFailure()) {
+
+            final List<StructuredTaskScope.Subtask<Recipe>> subtasks =
+                    ids.stream().map(recipeId -> scope.fork(() -> recipeProvider.get(new ContentId(String.format("%s/%s", language, recipeId))))).toList();
+            scope.join();
+            recipes = subtasks.stream().map(StructuredTaskScope.Subtask::get).filter(Objects::nonNull).toList();
+
+        } catch (InterruptedException e) {
+            return null;
         }
 
-        return recipeBucket.get();
+        return recipes;
     }
 
     @Override

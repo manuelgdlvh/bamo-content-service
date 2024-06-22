@@ -2,7 +2,6 @@ package com.gvtech.repository.recipe;
 
 
 import com.gvtech.entity.ContentEntity;
-import com.gvtech.entity.recipe.DietEntity;
 import com.gvtech.entity.recipe.TypeEntity;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
